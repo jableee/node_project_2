@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <a href="/" class="header">
+        <div id="header" class="header">
+            <h1>BLOGPLUS++</h1>
+            <div>
+                <P>
+                    <a href="/login">로그인</a> |
+                    <a href="/join">회원가입</a>
+                </P>
+            </div>
+        </div>
+    </a>
+
+    <!-- Main -->
+    <div id="main">
+        <div class="box alt container">
+            <section>
+                <div id="mod-form">
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="text" name="title" id="title" disabled />
+                        </div>
+                        <div class="col-6 col-12-mobilep">
+                            <input type="text" name="author" id="author" disabled />
+                        </div>
+                        <div class="col-6 col-12-mobilep">
+                            <input type="password" name="password" id="password" placeholder="Password" disabled />
+                        </div>
+                        <div class="col-12">
+                            <input type="text" name="date" id="date" disabled />
+                        </div>
+                        <div class="col-12">
+                            <textarea name="content" id="content" rows="6" disabled></textarea>
+                        </div>
+                        <input type='hidden' id="postId" />
+                        <div class="col-12">
+                            <ul class="actions special" id="ifmine">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+                    rel="stylesheet">
+                <div class="container">
+                    <div class="be-comment-block" id="comment-block">
+                        <h1 class="comments-title">Comments </h1>
+                        <form>
+                            <input type="hidden" id="commentPostId" name="postId" />
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <textarea class="form-input" id="commentContent" onclick="checkLogin()" required
+                                        placeholder="Your text"></textarea>
+                                </div>
+                            </div>
+                            <button onclick="postComment()">submit</button>
+                        </form>
+
+
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let searchParams = new URLSearchParams(window.location.search)
+            let postId = searchParams.get('postId')
+            showPost(postId)
+            showComment(postId)
+            $('#commentPostId').val(postId)
+        })
+
+        //선택 게시글 보여주기 (id 파라미터값)
+        function showPost(id) {
+            console.log("showPost")
+            $.ajax({
+                type: "GET",
+                url: '/api/post/' + id,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+                data: {},
+                success: function (response) {
+                    let post = response["detail"];
+                    $('#title').val(post['title'])
+                    $('#content').val(post['content'])
+                    $('#date').val(post['date'])
+                    $('#author').val(post['author'])
+                    $('#postId').val(post['postId'])
+                    if (response["mine"]) {
+                        $('#ifmine').append(`
+				<input type="button" id="mod" value="수정" onclick="modify()"/>
+				<input type="button" id="del" value="삭제" onclick="deletePost()"/>
+				`)
+                    }
+
+                }, error: function (error) {
+                    console.log(error)
+                    alert(error)
+                },
+            });
+        }
+
+        // 댓글 보여주기
+        function showComment(id) {
+            $.ajax({
+                type: "GET",
+                url: '/api/Allcomment/' + id,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+                data: {},
+                success: function (response) {
+                    let comments = response['comments']
+                    console.log(comments)
+                    for (comment of comments) {
+                        if (comment['mine']) {
+                            let temp_html = `<div class="be-comment">
+				<div class="be-comment-content" id="comment-${comment['commentId']}">
+					<input type="hidden" id="${comment['commentId']}" />
+					<span class="be-comment-name">
+						<a href="blog-detail-2.html">${comment['author']}</a>
+					</span>
+					<span class="be-comment-time">
+						<i class="fa fa-clock-o"></i>
+						${comment['date']}
+					</span>
+					<ul style="display:flex;float:right">
+						<button id="modCom${comment['commentId']}" onclick="modifyComment(${comment['commentId']})">수정</button>
+						<button id="delCom${comment['commentId']}" onclick="deleteComment(${comment['commentId']})">삭제</button>
+					</ul>
+					<p class="be-comment-text" style="margin-bottom:0" id="commentContent${comment['commentId']}">
+					${comment['content']}
+					</p>
+				</div>
+			</div>`
+                            $('#comment-block').append(temp_html);
+                        } else {
+
+                            let temp_html = `<div class="be-comment">
+				<div class="be-comment-content" id="comment-${comment['commentId']}">
+					<input type="hidden" id="${comment['commentId']}" />
+					<span class="be-comment-name">
+						<a href="blog-detail-2.html">${comment['author']}</a>
+					</span>
+					<span class="be-comment-time">
+						<i class="fa fa-clock-o"></i>
+						${comment['date']}
+					</span>
+					<p class="be-comment-text" style="margin-bottom:0" id="commentContent${comment['commentId']}">
+					${comment['content']}
+					</p>
+				</div>
+			</div>`
+                            $('#comment-block').append(temp_html);
+
+                        }
+                    }
+                }
+            });
+        }
+        // 댓글 삭제
+        function deleteComment(id) {
+            let confAlert = confirm("정말로 삭제하시겠습니까?");
+            if (confAlert == true) {
+                $.ajax({
+                    type: "DELETE",
+                    url: '/api/comment/' + id,
+                    data: {},
+                    success: function (response) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+
+        //댓글 수정
+        function modifyComment(id) {
+            if ($('#modCom' + id).text() == "수정") {
+                let temp = $.trim($('#commentContent' + id).text())
+                $('#commentContent' + id).empty()
+                $('#commentContent' + id).append(`
+			<div class="col-xs-12">									
+			<div class="form-group">
+				<textarea class="form-input" id="content${id}" name="content" required="" placeholder="Your text">${temp}</textarea>
+			</div>
+		</div>
+		`)
+                $('#modCom' + id).html('수정 완료')
+            }
+            else {
+                if ($.trim($('#content' + id).val()) == "") {
+                    alert("내용을 입력해주세요.")
+                    return;
+                }
+                let confAlert = confirm("정말로 수정하시겠습니까?");
+                if (confAlert == true) {
+                    $.ajax({
+                        type: "PATCH",
+                        url: '/api/comment/',
+                        data: { commentId: id, content: $('#content' + id).val() },
+                        success: function (response) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            }
+        }
+        //댓글 작성
+        function postComment() {
+            console.log($('#commentContent').val())
+            $.ajax({
+                type: "POST",
+                url: `/api/comment`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+                data: { postId: $('#commentPostId').val(), content: $('#commentContent').val() },
+                success: function (response) {
+                    window.location.replace("/");
+                },
+                error: function (error) {
+                    console.log(error)
+                    alert(error);
+                },
+            });
+        }
+
+        // 게시글 수정
+        function modify() {
+            if ($('#title').is(":disabled")) {
+                $("#title").removeAttr("disabled");
+                $("#content").removeAttr("disabled");
+                $("#password").removeAttr("disabled");
+                $("#author").removeAttr("disabled");
+                $("#mod").val("저장");
+            }
+            else {
+                $.ajax({
+                    type: "PATCH",
+                    url: `/api/post/` + $('#postId').val(),
+                    data: { title: $('#title').val(), content: $('#content').val(), password: $('#password').val(), author: $('#author').val() },
+                    success: function (response) {
+                        if (response['result'] == 'success') {
+                            alert("수정되었습니다.")
+                            redirect();
+                        }
+                        else {
+                            alert("비밀번호가 다릅니다.")
+                        }
+                    }
+                });
+            }
+        }
+
+        //게시글 삭제
+        function deletePost() {
+            $.ajax({
+                type: "DELETE",
+                url: `/api/post/` + $('#postId').val(),
+                data: { password: $('#password').val() },
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert("삭제되었습니다.")
+                        redirect();
+                    }
+                    else {
+                        alert("비밀번호가 다릅니다.")
+                    }
+                }
+            });
+        }
+        function redirect() {
+            window.location.href = "/";
+        }
+    </script>
+
+
+</body>
+
+</html>

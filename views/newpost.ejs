@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <a href="/" class="header">
+        <div id="header" class="header">
+            <h1>BLOGPLUS++</h1>
+            <div>
+                <P>
+                    <a href="/login">로그인</a> |
+                    <a href="/join">회원가입</a>
+                </P>
+            </div>
+        </div>
+    </a>
+
+    <!-- Main -->
+    <div id="main">
+        <div class="box alt container">
+            <section>
+                <form>
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="text" id="title" placeholder="Title" />
+                        </div>
+                        <div class="col-12">
+                            <textarea id="content" placeholder="Content" rows="6"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <ul class="actions special">
+                                <li><input type="button" value="글쓰기" onclick="postPost()" /></li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem("token") == null) {
+            getSelf(function () {
+                alert("로그인이 되어있지 않습니다. 메인 페이지로 이동합니다.");
+                window.location.replace("/");
+            });
+        }
+        function postPost() {
+            $.ajax({
+                type: "POST",
+                url: `/api/post`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+                data: { 
+                    content: $('#content').val(), 
+                    title: $('#title').val() 
+                },
+                success: function (response) {
+                    window.location.replace("/");
+                },
+                error: function (error) {
+                    console.log(error)
+                    alert(error);
+                },
+            });
+        }
+        function redirect() {
+            window.location.href = "/";
+        }
+    </script>
+
+
+</body>
+
+</html>

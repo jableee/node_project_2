@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <link rel="stylesheet" href="/static/main.css" />
+
+    <title>BLOG | login</title>
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <!-- Header -->
+    <a href="/" class="header">
+        <div id="header" class="header">
+            <h1>BLOGPLUS++</h1>
+            <div>
+                <P>
+                    <!-- <a href="/login">로그인</a> |
+                    <a href="/join">회원가입</a> -->
+                </P>
+            </div>
+        </div>
+    </a>
+
+    <!-- Main -->
+    <div id="main" class="main">
+        <div class="box alt container">
+            <section>
+                <header>
+                    <h3>게시글</h3>
+                </header>
+                <div class="table-wrapper">
+                    <table class="default">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>title</th>
+                                <th>author</th>
+                                <th>date</th>
+                            </tr>
+                        </thead>
+                        <tbody id='posts-body'>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <a href="/new" class="button">글쓰기</a>
+        </div>
+    </div>
+
+
+    <script>
+        
+        $(document).ready(function () {
+            //로그인 상태 체크에 따라 로그인,회원가입 또는 로그아웃
+            if (localStorage.getItem("token")) {
+                $('#header').append(`<button onclick="logout()">로그아웃</button>`)
+            } else {
+                $('#header').append(`<a href="/login">로그인</a>
+				<a href="/join">회원가입</a>`)
+            }
+            //db에서 게시글 불러오기 
+            showPosts()
+        })
+        // db에서 게시글 불러와서 보여주기
+        function showPosts() {
+            $.ajax({
+                type: "GET",
+                url: `/api/post`,
+                data: {},
+                success: function (response) {
+                    let posts = response["posts"];
+                    for (let i = 0; i < posts.length; i++) {
+                        $('#posts-body').append(`
+			<tr onclick="window.location='/detail?postId=${posts[i]['postId']}';">
+				<td>${posts[i]['postId']}</td>
+				<td>${posts[i]['title']}</td>
+				<td>${posts[i]['author']}</td>
+				<td>${posts[i]['date']}</td>
+			</tr>`)
+                    }
+                }
+            });
+        }
+        //로그아웃(로컬스토리지 비우기)
+        function logout() {
+            localStorage.clear();
+            window.location.href = "/";
+        }
+
+    </script>
+
+
+</body>
+
+</html>

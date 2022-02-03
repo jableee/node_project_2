@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <title>Document</title>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <a href="/" class="header">
+        <div id="header" class="header">
+            <h1>BLOGPLUS++</h1>
+            <div>
+                <P>
+                    <a href="/login">로그인</a> |
+                    <a href="/join">회원가입</a>
+                </P>
+            </div>
+        </div>
+    </a>
+
+    <!-- Main -->
+    <div id="main">
+        <div class="box alt container">
+            <input type="email" id="email" name="email" placeholder="email" />
+            <input type="password" id="password" name="password" placeholder="password" />
+            <button onclick="login()">로그인</button>
+            <a href="/join">회원가입</a>
+        </div>
+    </div>
+
+    <script>
+        
+        // routers/user.js로 router.post('/auth') 이동 
+        function login() {
+            if (localStorage.getItem("token")){
+                alert("이미 로그인이 되어있습니다.");
+                window.location.replace("/");
+            }
+
+            $.ajax({
+                type: "POST",
+                url: `/auth`,
+                data: { 
+                    password: $('#password').val(), 
+                    email: $('#email').val() 
+                },
+                success: function (response) {
+                    localStorage.setItem("token", response.token);
+                    window.location.replace("/");
+                },
+                error: function (error) {
+                    alert(error.responseJSON.errorMessage);
+                },
+            });
+        }
+    </script>
+
+</body>
+
+</html>
